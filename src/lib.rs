@@ -2,7 +2,7 @@
 //! [![cdumay_core on crates.io](https://img.shields.io/crates/v/cdumay_core)](https://crates.io/crates/cdumay_core)
 //! [![cdumay_core on docs.rs](https://docs.rs/cdumay_core/badge.svg)](https://docs.rs/cdumay_core)
 //! [![Source Code Repository](https://img.shields.io/badge/Code-On%20GitHub-blue?logo=GitHub)](https://github.com/cdumay/cdumay_core)
-//! 
+//!
 //! `cdumay_core` is a lightweight crate that provides custom `Error` and `Result` types
 //! as drop-in replacements for Rust’s standard `std::result::Result` and `std::error::Error`,
 //! with the primary goal of supporting serialization and deserialization via [`serde`].
@@ -38,10 +38,10 @@
 //! ```
 //!
 //! # Optional Features
-//! 
+//!
 //! - `utoipa`: Implement `utoipa::ToSchema` to `Error`
 //! - `actix-web`: Allow to use `Result` and `Error` with actix
-//! 
+//!
 //! # Compatibility
 //!
 //! This crate is designed for applications that require custom serialization logic.
@@ -67,7 +67,7 @@
 //! }
 //! ```
 mod error;
-pub use error::{Error, ErrorKind, ErrorBuilder};
+pub use error::{Error, ErrorBuilder, ErrorConverter, ErrorKind};
 mod result;
 pub use result::Result;
 

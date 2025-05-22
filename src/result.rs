@@ -14,7 +14,7 @@
 ///     Result::Ok(x * 2)
 /// }
 /// ```
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Result<T> {
     /// Contains the success value.
     Ok(T),

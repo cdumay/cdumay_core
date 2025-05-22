@@ -9,7 +9,7 @@ use serde_json::json;
 /// This structure is designed to facilitate error handling by providing
 /// detailed information that can be logged or displayed.
 ///
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 /// Error
 pub struct Error {
