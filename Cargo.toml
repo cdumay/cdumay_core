@@ -1,0 +1,28 @@
+[package]
+name = "cdumay_core"
+version = "0.1.0"
+edition = "2024"
+
+authors = ["Cédric Dumay <cedric.dumay@gmail.com>"]
+description = "A Rust Library for standard code"
+documentation = "https://docs.rs/cdumay_core"
+homepage = "https://github.com/cdumay/cdumay_core"
+license-file = "LICENSE"
+readme = "README.md"
+repository = "https://github.com/cdumay/cdumay_core"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde-value = "0.7"
+
+serde_json = { version = "1.0", optional = true }
+utoipa = { version = "5.3", optional = true }
+actix-web = { version = "4.11", optional = true }
+
+[features]
+default = []
+utoipa = ['dep:utoipa', 'dep:serde_json']
+actix-web = ["dep:actix-web"]
