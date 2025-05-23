@@ -59,7 +59,8 @@ macro_rules! define_kinds {
 /// define_errors! {
 ///     NotFoundError = NotFound,
 ///     UnauthorizedError = Unauthorized,
-///     Forbidden = (Unauthorized, 403)
+///     Forbidden = (Unauthorized, 403),
+///     LoginTimeout = (Unauthorized, 440, "The client's session has expired and must log in again.") 
 /// }
 /// ```
 ///
@@ -76,25 +77,30 @@ macro_rules! define_kinds {
 macro_rules! define_errors {
     (
         $(
-            $name:ident = $kind:tt
+            $name:ident = $kind_spec:tt
         ),* $(,)?
     ) => {
         $(
-            define_errors!(@parse $name = $kind);
+            define_errors!(@parse $name = $kind_spec);
         )*
     };
 
     // Error = Kind
     (@parse $name:ident = $kind:ident) => {
-        define_errors!(@impl $name, $kind, $kind.code());
+        define_errors!(@impl $name, $kind, $kind.code(), $kind.description());
     };
 
     // Error = (Kind, Code)
     (@parse $name:ident = ($kind:ident, $code:expr)) => {
-        define_errors!(@impl $name, $kind, $code);
+        define_errors!(@impl $name, $kind, $code, $kind.description());
+    };
+
+    // Error = (Kind, Code, Message)
+    (@parse $name:ident = ($kind:ident, $code:expr, $message:expr)) => {
+        define_errors!(@impl $name, $kind, $code, $message);
     };
     
-    (@impl $name:ident, $kind:ident, $code:expr) => {
+    (@impl $name:ident, $kind:ident, $code:expr, $message:expr) => {
         #[doc = concat!("Error : ", stringify!($name), " (Kind: [`", stringify!($kind), "`])")]
         #[derive(Debug, Clone)]
         pub struct $name {
@@ -136,7 +142,7 @@ macro_rules! define_errors {
             }
             /// Returns the error message as a `String`.
             pub fn message(&self) -> String {
-                self.message.clone().unwrap_or($name::kind.description().to_string())
+                self.message.clone().unwrap_or($message.to_string())
             }
             /// Adds a custom message to the error.
             pub fn with_message(mut self, message: String) -> Self {

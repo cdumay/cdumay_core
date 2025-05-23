@@ -13,6 +13,7 @@ mod tests {
         NotFoundError = NotFound,
         UnauthorizedError = Unauthorized,
         Forbidden = (Unauthorized, 403),
+        LoginTimeout = (Unauthorized, 440, "Login Time-out") 
     }
 
     #[test]
@@ -29,6 +30,14 @@ mod tests {
         assert_eq!(err.code(), 403);
         assert_eq!(err.message(), "Unauthorized Access");
         assert_eq!(err.class(), "Client::Unauthorized::Forbidden");
+    }
+
+    #[test]
+    fn test_forbidden_error_override_message() {
+        let err = LoginTimeout::new();
+        assert_eq!(err.code(), 440);
+        assert_eq!(err.message(), "Login Time-out");
+        assert_eq!(err.class(), "Client::Unauthorized::LoginTimeout");
     }
 
     #[test]
