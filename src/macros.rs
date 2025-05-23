@@ -31,6 +31,7 @@ macro_rules! define_kinds {
         ),* $(,)?
     ) => {
         $(
+            #[doc = concat!("ErrorKind : ", stringify!($ident), " (", $code, ") - ", $description)]
             #[allow(non_upper_case_globals)]
             pub const $ident: cdumay_core::ErrorKind = cdumay_core::ErrorKind(stringify!($ident), $code, $description);
         )*
@@ -78,6 +79,7 @@ macro_rules! define_errors {
         ),* $(,)?
     ) => {
         $(
+            #[doc = concat!("Error : ", stringify!($name), " (Kind: [`", stringify!($kind), "`])")]
             #[derive(Debug, Clone)]
             pub struct $name {
                 code: Option<u16>,
@@ -86,6 +88,18 @@ macro_rules! define_errors {
             }
             
             impl $name {
+                /// Creates a new `Error` instance.
+                ///
+                /// # Arguments
+                ///
+                /// * `code` - A numerical status or error code (e.g., HTTP status code).
+                /// * `class` - A string representing the error category or type (e.g., "ValidationError").
+                /// * `message` - A human-readable error message.
+                /// * `details` - Additional error details stored in a key-value map, using `serde_value::Value`.
+                ///
+                /// # Returns
+                ///
+                /// A new instance of `Error`.
                 pub fn new() -> Self {
                     Self {
                         code: None,
@@ -93,29 +107,36 @@ macro_rules! define_errors {
                         details: None,
                     }
                 }
+                /// Represents a categorized error kind
                 pub const kind: cdumay_core::ErrorKind = $kind;
-                
+                /// Numerical status or error code (e.g., HTTP status code).
                 pub fn code(&self) -> u16 {
                     self.code.unwrap_or($name::kind.code())
                 }
+                /// Adds a custom status code to the error.
                 pub fn with_code(mut self, code: u16) -> Self {
                     self.code = Some(code);
                     self
                 }
+                /// Returns the error message as a `String`.
                 pub fn message(&self) -> String {
                     self.message.clone().unwrap_or($name::kind.description().to_string())
                 }
+                /// Adds a custom message to the error.
                 pub fn with_message(mut self, message: String) -> Self {
                     self.message = Some(message);
                     self
                 }
+                /// Returns a clone of the details map.
                 pub fn details(&self) -> std::collections::BTreeMap<String, serde_value::Value> {
                     self.details.clone().unwrap_or_default()
                 }
+                /// Adds a structured map of additional error details.
                 pub fn with_details(mut self, details: std::collections::BTreeMap<String, serde_value::Value>) -> Self {
                     self.details = Some(details);
                     self
                 }
+                /// Returns the error class as a `String`.
                 pub fn class(&self) -> String {
                     format!("{}{}{}", Self::kind.side(), Self::kind.name(), stringify!($name))
                 }
