@@ -63,7 +63,8 @@
 //! define_errors! {
 //!     Unexpected = UnknownError,
 //!     FileRead = IoError,
-//!     FileNotExists = IoError
+//!     FileNotExists = IoError,
+//!     Forbidden = (IoError, 403), // code overwrite 500 (from kind) -> 403 
 //! }
 //! ```
 mod error;

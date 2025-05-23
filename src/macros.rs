@@ -59,6 +59,7 @@ macro_rules! define_kinds {
 /// define_errors! {
 ///     NotFoundError = NotFound,
 ///     UnauthorizedError = Unauthorized,
+///     Forbidden = (Unauthorized, 403)
 /// }
 /// ```
 ///
@@ -75,90 +76,104 @@ macro_rules! define_kinds {
 macro_rules! define_errors {
     (
         $(
-            $name:ident = $kind:ident
+            $name:ident = $kind:tt
         ),* $(,)?
     ) => {
         $(
-            #[doc = concat!("Error : ", stringify!($name), " (Kind: [`", stringify!($kind), "`])")]
-            #[derive(Debug, Clone)]
-            pub struct $name {
-                code: Option<u16>,
-                message: Option<String>,
-                details: Option<std::collections::BTreeMap<String, serde_value::Value>>,
-            }
-            
-            impl $name {
-                /// Creates a new `Error` instance.
-                ///
-                /// # Arguments
-                ///
-                /// * `code` - A numerical status or error code (e.g., HTTP status code).
-                /// * `class` - A string representing the error category or type (e.g., "ValidationError").
-                /// * `message` - A human-readable error message.
-                /// * `details` - Additional error details stored in a key-value map, using `serde_value::Value`.
-                ///
-                /// # Returns
-                ///
-                /// A new instance of `Error`.
-                pub fn new() -> Self {
-                    Self {
-                        code: None,
-                        message: None,
-                        details: None,
-                    }
-                }
-                /// Represents a categorized error kind
-                pub const kind: cdumay_core::ErrorKind = $kind;
-                /// Numerical status or error code (e.g., HTTP status code).
-                pub fn code(&self) -> u16 {
-                    self.code.unwrap_or($name::kind.code())
-                }
-                /// Adds a custom status code to the error.
-                pub fn with_code(mut self, code: u16) -> Self {
-                    self.code = Some(code);
-                    self
-                }
-                /// Returns the error message as a `String`.
-                pub fn message(&self) -> String {
-                    self.message.clone().unwrap_or($name::kind.description().to_string())
-                }
-                /// Adds a custom message to the error.
-                pub fn with_message(mut self, message: String) -> Self {
-                    self.message = Some(message);
-                    self
-                }
-                /// Returns a clone of the details map.
-                pub fn details(&self) -> std::collections::BTreeMap<String, serde_value::Value> {
-                    self.details.clone().unwrap_or_default()
-                }
-                /// Adds a structured map of additional error details.
-                pub fn with_details(mut self, details: std::collections::BTreeMap<String, serde_value::Value>) -> Self {
-                    self.details = Some(details);
-                    self
-                }
-                /// Returns the error class as a `String`.
-                pub fn class(&self) -> String {
-                    format!("{}{}{}", Self::kind.side(), Self::kind.name(), stringify!($name))
-                }
-            }
-            
-            impl std::error::Error for $name {}
-        
-            impl From<$name> for cdumay_core::Error {
-                fn from(err: $name) -> cdumay_core::Error {
-                    cdumay_core::ErrorBuilder::new($name::kind, stringify!($name))
-                        .with_code(err.code())
-                        .with_message(err.message())
-                        .with_details(err.details())
-                        .build()
-                }
-            }
-
-            impl std::fmt::Display for $name {
-                fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                    write!(f, "{} ({}): {}", self.class(), self.code(), self.message())
-                }
-            }
+            define_errors!(@parse $name = $kind);
         )*
+    };
+
+    // Error = Kind
+    (@parse $name:ident = $kind:ident) => {
+        define_errors!(@impl $name, $kind, $kind.code());
+    };
+
+    // Error = (Kind, Code)
+    (@parse $name:ident = ($kind:ident, $code:expr)) => {
+        define_errors!(@impl $name, $kind, $code);
+    };
+    
+    (@impl $name:ident, $kind:ident, $code:expr) => {
+        #[doc = concat!("Error : ", stringify!($name), " (Kind: [`", stringify!($kind), "`])")]
+        #[derive(Debug, Clone)]
+        pub struct $name {
+            code: Option<u16>,
+            message: Option<String>,
+            details: Option<std::collections::BTreeMap<String, serde_value::Value>>,
+        }
+        
+        impl $name {
+            /// Creates a new `Error` instance.
+            ///
+            /// # Arguments
+            ///
+            /// * `code` - A numerical status or error code (e.g., HTTP status code).
+            /// * `class` - A string representing the error category or type (e.g., "ValidationError").
+            /// * `message` - A human-readable error message.
+            /// * `details` - Additional error details stored in a key-value map, using `serde_value::Value`.
+            ///
+            /// # Returns
+            ///
+            /// A new instance of `Error`.
+            pub fn new() -> Self {
+                Self {
+                    code: None,
+                    message: None,
+                    details: None,
+                }
+            }
+            /// Represents a categorized error kind
+            pub const kind: cdumay_core::ErrorKind = $kind;
+            /// Numerical status or error code (e.g., HTTP status code).
+            pub fn code(&self) -> u16 {
+                self.code.unwrap_or($code)
+            }
+            /// Adds a custom status code to the error.
+            pub fn with_code(mut self, code: u16) -> Self {
+                self.code = Some(code);
+                self
+            }
+            /// Returns the error message as a `String`.
+            pub fn message(&self) -> String {
+                self.message.clone().unwrap_or($name::kind.description().to_string())
+            }
+            /// Adds a custom message to the error.
+            pub fn with_message(mut self, message: String) -> Self {
+                self.message = Some(message);
+                self
+            }
+            /// Returns a clone of the details map.
+            pub fn details(&self) -> std::collections::BTreeMap<String, serde_value::Value> {
+                self.details.clone().unwrap_or_default()
+            }
+            /// Adds a structured map of additional error details.
+            pub fn with_details(mut self, details: std::collections::BTreeMap<String, serde_value::Value>) -> Self {
+                self.details = Some(details);
+                self
+            }
+            /// Returns the error class as a `String`.
+            pub fn class(&self) -> String {
+                format!("{}::{}::{}", Self::kind.side(), Self::kind.name(), stringify!($name))
+            }
+        }
+        
+        impl std::error::Error for $name {}
+    
+        impl From<$name> for cdumay_core::Error {
+            fn from(err: $name) -> cdumay_core::Error {
+                cdumay_core::ErrorBuilder::new($name::kind, stringify!($name))
+                    .with_code(err.code())
+                    .with_message(err.message())
+                    .with_details(err.details())
+                    .build()
+            }
+        }
+
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "{} ({}): {}", self.class(), self.code(), self.message())
+            }
+        }
     };
 }
