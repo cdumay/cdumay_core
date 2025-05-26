@@ -69,8 +69,7 @@
 //! ```
 mod error;
 pub use error::{Error, ErrorBuilder, ErrorConverter, ErrorKind};
-mod result;
-pub use result::Result;
+pub type Result<D> = std::result::Result<D, Error>;
 
 #[macro_use]
 mod macros;
