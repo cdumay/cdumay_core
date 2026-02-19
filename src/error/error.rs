@@ -1,4 +1,5 @@
 #[cfg(feature = "utoipa")]
+#[allow(unused_imports)]
 use serde_json::json;
 
 /// A structured error type with categorized information.
@@ -71,11 +72,12 @@ impl Error {
     /// let err = Error::new(400, "ValidationError".to_string(), "Invalid username".to_string(), BTreeMap::new());
     /// assert_eq!(err.code(), 400);
     /// ```
+    #[inline]
     pub fn code(&self) -> u16 {
         self.code
     }
 
-    /// Returns the error class as a `String`.
+    /// Returns the error class as a string slice (avoids allocation).
     ///
     /// # Example
     /// ```
@@ -85,11 +87,12 @@ impl Error {
     /// let err = Error::new(400, "ValidationError".to_string(), "Invalid username".to_string(), BTreeMap::new());
     /// assert_eq!(err.class(), "ValidationError");
     /// ```
-    pub fn class(&self) -> String {
-        self.class.to_string()
+    #[inline]
+    pub fn class(&self) -> &str {
+        &self.class
     }
 
-    /// Returns the error message as a `String`.
+    /// Returns the error message as a string slice (avoids allocation).
     ///
     /// # Example
     /// ```
@@ -99,8 +102,15 @@ impl Error {
     /// let err = Error::new(400, "ValidationError".to_string(), "Invalid username".to_string(), BTreeMap::new());
     /// assert_eq!(err.message(), "Invalid username");
     /// ```
-    pub fn message(&self) -> String {
-        self.message.to_string()
+    #[inline]
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+
+    /// Returns a reference to the details map (avoids clone when only reading).
+    #[inline]
+    pub fn details_ref(&self) -> &std::collections::BTreeMap<String, serde_value::Value> {
+        &self.details
     }
 
     /// Returns a clone of the details map.
@@ -166,7 +176,7 @@ impl From<Error> for std::io::Error {
 /// ```
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", format!("{} ({}) - {}", self.class, self.code, self.message))
+        write!(f, "{} ({}) - {}", self.class, self.code, self.message)
     }
 }
 

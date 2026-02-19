@@ -30,6 +30,7 @@ impl ErrorKind {
     /// let error = ErrorKind("NotFound", 404, "Not Found");
     /// assert_eq!(error.name(), "NotFound");
     /// ```
+    #[inline]
     pub fn name(&self) -> &'static str {
         self.0
     }
@@ -43,6 +44,7 @@ impl ErrorKind {
     /// let error = ErrorKind("NotFound", 404, "Not Found");
     /// assert_eq!(error.code(), 404);
     /// ```
+    #[inline]
     pub fn code(&self) -> u16 {
         self.1
     }
@@ -56,6 +58,7 @@ impl ErrorKind {
     /// let error = ErrorKind("NotFound", 404, "Not Found");
     /// assert_eq!(error.description(), "Not Found");
     /// ```
+    #[inline]
     pub fn description(&self) -> &'static str {
         self.2
     }
@@ -75,6 +78,7 @@ impl ErrorKind {
     /// let server_error = ErrorKind("InternalServerError", 500, "Internal Server Error");
     /// assert_eq!(server_error.side(), "Server");
     /// ```
+    #[inline]
     pub fn side(&self) -> &'static str {
         match self.code() {
             0..=499 => "Client",

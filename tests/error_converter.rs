@@ -75,9 +75,13 @@ mod tests {
 
         let result = MyErrorConverter::convert_error(&error, Some("Something went wrong".into()), context.clone());
 
+        assert_eq!(result.code(), 500);
+        assert!(result.class().contains("MockError"));
         assert_eq!(result.message(), "Something went wrong");
         assert!(result.details().contains_key("origin"));
         assert_eq!(result.details().get("origin").unwrap(), &Value::String("Conversion failed".to_string()));
+        assert!(result.details_ref().contains_key("origin"));
+        assert!(result.details_ref().contains_key("field"));
     }
 
     #[test]

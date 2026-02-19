@@ -132,6 +132,7 @@ macro_rules! define_errors {
             /// Represents a categorized error kind
             pub const kind: cdumay_core::ErrorKind = $kind;
             /// Numerical status or error code (e.g., HTTP status code).
+            #[inline]
             pub fn code(&self) -> u16 {
                 self.code.unwrap_or($code)
             }
@@ -141,6 +142,7 @@ macro_rules! define_errors {
                 self
             }
             /// Returns the error message as a `String`.
+            #[inline]
             pub fn message(&self) -> String {
                 self.message.clone().unwrap_or($message.to_string())
             }
@@ -150,6 +152,7 @@ macro_rules! define_errors {
                 self
             }
             /// Returns a clone of the details map.
+            #[inline]
             pub fn details(&self) -> std::collections::BTreeMap<String, serde_value::Value> {
                 self.details.clone().unwrap_or_default()
             }
@@ -159,6 +162,7 @@ macro_rules! define_errors {
                 self
             }
             /// Returns the error class as a `String`.
+            #[inline]
             pub fn class(&self) -> String {
                 format!("{}::{}::{}", Self::kind.side(), Self::kind.name(), stringify!($name))
             }

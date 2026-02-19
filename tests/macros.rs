@@ -63,4 +63,30 @@ mod tests {
         assert_eq!(core.code(), 404);
         assert_eq!(core.message(), "Page missing");
     }
+
+    #[test]
+    fn test_generated_error_display() {
+        let err = NotFoundError::new();
+        let s = format!("{}", err);
+        assert!(s.contains("NotFoundError"));
+        assert!(s.contains("404"));
+        assert!(s.contains("Resource Not Found"));
+    }
+
+    #[test]
+    fn test_generated_error_with_code_and_details() {
+        let mut details = BTreeMap::new();
+        details.insert("path".to_string(), Value::String("/missing".into()));
+        let err = NotFoundError::new()
+            .with_code(404)
+            .with_details(details.clone());
+        assert_eq!(err.code(), 404);
+        assert_eq!(err.details(), details);
+    }
+
+    #[test]
+    fn test_generated_error_std_error_trait() {
+        let err = NotFoundError::new();
+        let _: &dyn std::error::Error = &err;
+    }
 }

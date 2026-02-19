@@ -22,15 +22,14 @@ pub trait ErrorConverter {
     fn store_origin(
         error: &Self::Error,
         text: Option<String>,
-        context: std::collections::BTreeMap<String, serde_value::Value>,
+        mut context: std::collections::BTreeMap<String, serde_value::Value>,
     ) -> (String, std::collections::BTreeMap<String, serde_value::Value>) {
         match text {
-            Some(text) => (text, {
-                let mut ctx = context.clone();
-                ctx.insert("origin".to_string(), serde_value::Value::String(error.to_string()));
-                ctx
-            }),
-            None => (error.to_string(), context.clone()),
+            Some(text) => {
+                context.insert("origin".to_string(), serde_value::Value::String(error.to_string()));
+                (text, context)
+            }
+            None => (error.to_string(), context),
         }
     }
 
