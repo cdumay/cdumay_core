@@ -5,51 +5,25 @@
 [![cdumay_core on docs.rs](https://docs.rs/cdumay_core/badge.svg)](https://docs.rs/cdumay_core)
 [![Source Code Repository](https://img.shields.io/badge/Code-On%20GitHub-blue?logo=GitHub)](https://github.com/cdumay/cdumay_core)
 
-A lightweight Rust crate that provides custom `Error` and `Result` types as drop-in replacements for `std::result::Result` and `std::error::Error`, with full serialization support via [serde](https://serde.rs).
+`cdumay_core` is a lightweight crate that provides custom `Error` and `Result` types
+as drop-in replacements for Rust’s standard `std::result::Result` and `std::error::Error`,
+with the primary goal of supporting serialization and deserialization via [`serde`].
 
 ## Motivation
 
-Rust’s standard error types do not implement `Serialize` and `Deserialize`. This crate provides concrete, serializable alternatives for:
+Rust's standard error types do not implement `Serialize` and `Deserialize` due to
+their generic and trait-based nature. This crate provides concrete, serializable
+alternatives suitable for applications like:
 
-- Returning structured errors from APIs (HTTP, RPC, WebAssembly)
+- Returning structured errors from APIs (e.g., HTTP, RPC, WebAssembly)
 - Communicating errors across process boundaries
 
-## Installation
+## Features
 
-Add to your `Cargo.toml`:
-
-```toml
-[dependencies]
-cdumay_core = "0.1"
-```
-
-Optional features:
-
-```toml
-cdumay_core = { version = "0.1", features = ["utoipa", "actix-web"] }
-```
-
-## Features (crate)
-
-- **`Error`** — Serializable error with code, class, message, and optional details map.
-- **`Result<T>`** — Type alias for `Result<T, Error>`, serializable.
-- **`ErrorKind`** — Categorized kind (name, code, description); client/server side.
-- **`ErrorBuilder`** — Fluent builder for `Error`.
-- **`ErrorConverter`** — Trait to convert custom errors into `Error` with context.
-- **Macros** — `define_kinds!` and `define_errors!` for structured error definitions.
-
-## Optional features (flags)
-
-| Feature     | Description                                      |
-|------------|--------------------------------------------------|
-| `utoipa`   | Implements `utoipa::ToSchema` for `Error`.       |
-| `actix-web`| Implements `actix_web::ResponseError` for `Error`. |
-
-Enable in `Cargo.toml`:
-
-```toml
-cdumay_core = { version = "0.1", features = ["utoipa", "actix-web"] }
-```
+- [`Error`] — A serializable error type with a message and optional cause.
+- [`Result<T>`] — A simple alias for `crate::result::Result<T, Error>`, fully serializable.
+- Full support for `serde::{Serialize, Deserialize}`.
+- Optional integration with external crates via feature flags.
 
 ## Example
 
@@ -65,9 +39,20 @@ fn do_work() -> Result<i32> {
 }
 ```
 
+## Optional Features
+
+- `utoipa`: Implement `utoipa::ToSchema` to `Error`
+- `actix-web`: Allow to use `Result` and `Error` with actix
+
+## Compatibility
+
+This crate is designed for applications that require custom serialization logic.
+It is **not a full replacement** for `std::result::Result` in all use cases, especially
+where standard error traits are expected.
+
 ## Macros
 
-Use `define_kinds!` and `define_errors!` to define reusable error kinds and concrete error types:
+Use the provided derive macros to define your error and error kind structs:
 
 ```rust
 use cdumay_core::{define_errors, define_kinds};
@@ -80,38 +65,7 @@ define_kinds! {
 define_errors! {
     Unexpected = UnknownError,
     FileRead = IoError,
-    Forbidden = (IoError, 403),              // override code 500 → 403
-    FileNotFound = (IoError, 404, "File not found")  // override description
+    Forbidden = (IoError, 403), // kind code overwrite 500 -> 403
+    FileNotFound = (IoError, 404, "File not found") // kind description overwrite
 }
 ```
-
-Generated types support `Display`, `std::error::Error`, and `From<T> for Error`.
-
-## Testing
-
-Run the test suite:
-
-```bash
-cargo test
-```
-
-Run tests with all optional features (actix-web, utoipa):
-
-```bash
-cargo test --all-features
-```
-
-Tests live under the `tests/` directory; feature-gated tests run only when the corresponding feature is enabled.
-
-## Compatibility
-
-This crate is intended for applications that need serializable errors. It is not a full replacement for `std::result::Result` in every context, especially where standard error traits or other error types are required.
-
-## Documentation
-
-- [API docs on docs.rs](https://docs.rs/cdumay_core)
-- [Repository](https://github.com/cdumay/cdumay_core)
-
-## License
-
-BSD-3-Clause — see [LICENSE](./LICENSE).
